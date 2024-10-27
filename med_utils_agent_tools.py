@@ -75,10 +75,36 @@ def vitalsign(file: str):
     return df.to_csv()
 
 
-vitalsign = StructuredTool.from_function(
+vitalsign_tool = StructuredTool.from_function(
     func=vitalsign,
     name='vitalsign records',
     description="Use this tool to access vital sign records of patients"
+)
+
+
+def med_procedure(file: str):
+    df = pd.read_csv('./temp_data/select_d_icd_procedures.csv')
+    # return df
+    return df.to_csv()
+
+
+procedure_tool = StructuredTool.from_function(
+    func=med_procedure,
+    name='medical procedures',
+    description="Use this tool to access medical procedures perform on patients during hospitalization"
+)
+
+
+def emar(file: str):
+    df = pd.read_csv('./temp_data/select_emar.csv')
+    # return df
+    return df.to_csv()
+
+
+emar_tool = StructuredTool.from_function(
+    func=emar,
+    name='emar records',
+    description="Use this tool to access medicine administered to patients during hospitalization"
 )
 
 
@@ -87,4 +113,6 @@ toolkit = [edstays_tool,
            triage_tool,
            medrecon_tool,
            pyxis_tool,
-           vitalsign]
+           vitalsign_tool,
+           procedure_tool,
+           emar_tool]
