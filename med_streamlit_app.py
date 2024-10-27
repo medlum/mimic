@@ -17,13 +17,28 @@ st.set_page_config(page_title="ED Chatbot",
                    initial_sidebar_state='collapsed',
                    page_icon="🚑")
 
-# read original data
+# read original ed data
 df_edstays = pd.read_csv('./med_data/edstays.csv')
 df_diagnosis = pd.read_csv('./med_data/diagnosis.csv')
 df_medrecon = pd.read_csv('./med_data/medrecon.csv')
 df_pyxis = pd.read_csv('./med_data/pyxis.csv')
 df_triage = pd.read_csv('./med_data/triage.csv')
 df_vitalsign = pd.read_csv('./med_data/vitalsign.csv')
+
+# read original hosp data
+df_procedures_icd = pd.read_csv('./hosp_data/procedures_icd.csv')
+df_d_icd_procedures = pd.read_csv('./hosp_data/d_icd_procedures.csv')
+df_d_icd_procedures_merged = pd.merge(df_d_icd_procedures,
+                                      df_procedures_icd, on=['icd_code',
+                                                             'icd_version'],
+                                      how='inner')
+df_d_icd_procedures_merged = df_d_icd_procedures_merged[['subject_id', 'hadm_id', 'seq_num',
+                                                         'chartdate', 'icd_code', 'icd_version', 'long_title']]
+
+df_emar = pd.read_csv('./hosp_data/emar.csv')
+df_emar_detail = pd.read_csv('./hosp_data/emar_detail.csv')
+df_emar_merged = pd.merge(df_emar,
+                          df_emar_detail, on=['subject_id', 'emar_id', 'emar_seq', 'pharmacy_id'], how='inner')
 
 # subject_id for selection
 subject_id = df_edstays['subject_id'].unique()
@@ -44,6 +59,11 @@ select_triage = df_triage[df_triage['subject_id']
                           == option].sort_values(by="stay_id")
 select_vitalsign = df_vitalsign[df_vitalsign['subject_id'] == option].sort_values(
     by="stay_id")
+select_d_icd_procedures = df_d_icd_procedures_merged[
+    df_d_icd_procedures_merged['subject_id'] == option]
+
+select_emar = df_emar_merged[
+    df_emar_merged['subject_id'] == option]
 
 
 # write csv after selected patient
@@ -53,6 +73,9 @@ select_medrecon.to_csv('./temp_data/select_medrecon.csv')
 select_pyxis.to_csv('./temp_data/select_pyxis.csv')
 select_triage.to_csv('./temp_data/select_triage.csv')
 select_vitalsign.to_csv('./temp_data/select_vitalsign.csv')
+select_d_icd_procedures.to_csv('./temp_data/select_d_icd_procedures.csv')
+select_emar.to_csv('./temp_data/select_emar.csv')
+
 
 with st.sidebar:
     st.subheader("About Patient's Record")
@@ -131,7 +154,7 @@ model = "meta-llama/Meta-Llama-3.1-70B-Instruct"
 # initialise LLM for agents and tools
 llm_factual = HuggingFaceEndpoint(
     repo_id=model,
-    max_new_tokens=1000,
+    max_new_tokens=2000,
     do_sample=False,
     temperature=0.1,
     repetition_penalty=1.1,
@@ -171,7 +194,8 @@ welcome_msg = """\n1. Admission
                 \n4. Vital signs
                 \n5. Medicine reconcilliation
                 \n6. Medicine dispensed during admission
-                \n"""
+                \n7. Medical procedures during hospitalization
+                \n8. Medicine administered during hospitalization"""
 
 # set up session state as a gate to display welcome message
 if 'initial_msg' not in st.session_state:
