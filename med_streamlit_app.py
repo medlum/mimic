@@ -13,7 +13,7 @@ from huggingface_hub.errors import OverloadedError
 import pandas as pd
 
 # ---------set up page config -------------#
-st.set_page_config(page_title="ED Chatbot",
+st.set_page_config(page_title="MIMIC Chatbot",
                    layout="wide",
                    initial_sidebar_state='expanded',
                    page_icon="🚑")
@@ -47,7 +47,7 @@ df_emar = pd.read_csv('./hosp_data/emar.csv')
 
 # subject_id for selection
 subject_id = df_edstays['subject_id'].unique()
-option = st.selectbox("Medical Records", subject_id,
+option = st.selectbox("Choose a medical record", subject_id,
                       index=None, placeholder="Select a patient id")
 
 # select patient by subject_id
@@ -238,7 +238,7 @@ if option is not None:
 
         # ---------set up welcome msg-------------#
         # You have selected patient id: {option}
-        welcome_msg = f"Hi there, I'm MIMIC! You can choose an option or ask any question about patient: {option}."
+        welcome_msg = f"Hi there! Choose an option or ask any questions below about patient: {option}."
         # if 0, add welcome message to chat_msg
         if st.session_state.initial_msg == 0:
             chat_msg.add_ai_message(welcome_msg)
@@ -249,7 +249,7 @@ if option is not None:
 
             # bot's message is in even position as welcome message is added at initial
             if index % 2 == 0:
-                with st.chat_message("assistant"):
+                with st.chat_message("assistant", avatar=":material/robot_2:"):
                     st.write(msg.content.replace("<|im_start|>", "").replace(
                         "<|im_end|>", "").replace("<|eot_id|>", "").replace("AI:", "").replace("Human:", ""))
 
@@ -263,7 +263,7 @@ if option is not None:
 
             # user's message is in odd position
             else:
-                with st.chat_message("user"):
+                with st.chat_message("user", avatar=":material/face_6:"):
                     st.write(msg.content.replace(
                         "<|im_start|>", "").replace("<|im_end|>", ""))
 
@@ -339,7 +339,7 @@ if option is not None:
 
         if prompt := (st.chat_input("Ask me a question...") or button_pressed):
 
-            with st.chat_message("user"):
+            with st.chat_message("user", avatar=":material/face_6:"):
                 st.write(f'{prompt}')
 
             # show prompt message
@@ -356,7 +356,7 @@ if option is not None:
                     response = executor.invoke(
                         {'input': f'<|im_start|>{prompt}<|im_end|>'})
 
-                    with st.chat_message("assistant"):
+                    with st.chat_message("assistant", avatar=":material/robot_2:"):
                         st.write(response['output'].replace("<|im_start|>", "").replace(
                             "<|im_end|>", "").replace("<|eot_id|>", "").replace("<|endoftext|>", ""))
 
