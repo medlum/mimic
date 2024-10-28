@@ -310,26 +310,26 @@ if option is not None:
         button_cols_4 = st.columns(3)
 
         button_pressed = ""
-
-        if button_cols[0].button(example_prompts[0], help=example_prompts_help[0]):
+        # include help=example_prompts_help[0] in button for pop-up
+        if button_cols[0].button(example_prompts[0]):
             button_pressed = example_prompts[0]
-        elif button_cols[1].button(example_prompts[1], help=example_prompts_help[1]):
+        elif button_cols[1].button(example_prompts[1]):
             button_pressed = example_prompts[1]
-        elif button_cols[2].button(example_prompts[2], help=example_prompts_help[2]):
+        elif button_cols[2].button(example_prompts[2]):
             button_pressed = example_prompts[2]
 
-        elif button_cols_2[0].button(example_prompts[3], help=example_prompts_help[3]):
+        elif button_cols_2[0].button(example_prompts[3]):
             button_pressed = example_prompts[3]
-        elif button_cols_2[1].button(example_prompts[4], help=example_prompts_help[4]):
+        elif button_cols_2[1].button(example_prompts[4]):
             button_pressed = example_prompts[4]
-        elif button_cols_2[2].button(example_prompts[5], help=example_prompts_help[5]):
+        elif button_cols_2[2].button(example_prompts[5]):
             button_pressed = example_prompts[5]
 
-        elif button_cols_3[0].button(example_prompts[6], help=example_prompts_help[6]):
+        elif button_cols_3[0].button(example_prompts[6]):
             button_pressed = example_prompts[6]
-        elif button_cols_3[1].button(example_prompts[7], help=example_prompts_help[7]):
+        elif button_cols_3[1].button(example_prompts[7]):
             button_pressed = example_prompts[7]
-        elif button_cols_3[2].button(example_prompts[8], help=example_prompts_help[8]):
+        elif button_cols_3[2].button(example_prompts[8]):
             button_pressed = example_prompts[8]
 
         # elif button_cols_4[0].button(example_prompts[9], help=example_prompts_help[9]):
