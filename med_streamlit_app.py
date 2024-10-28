@@ -10,7 +10,7 @@ from langchain_community.chat_message_histories import StreamlitChatMessageHisto
 from langchain_core.prompts import (PromptTemplate, MessagesPlaceholder)
 from streamlit_chat import message
 from huggingface_hub.errors import OverloadedError
-
+import pandas as pd
 
 # ---------set up page config -------------#
 st.set_page_config(page_title="ED Chatbot",
