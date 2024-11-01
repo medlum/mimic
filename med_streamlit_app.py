@@ -222,10 +222,6 @@ executor = AgentExecutor(
 if 'initial_msg' not in st.session_state:
     st.session_state.initial_msg = 0
 
-# Initialize session state
-if 'langchain_executor' not in st.session_state:
-    st.session_state.langchain_executor = None
-
 # ------ initial welcome message -------#
 if option is not None:
     with st.sidebar:
