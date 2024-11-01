@@ -7,10 +7,8 @@ from langchain_huggingface import HuggingFaceEndpoint
 from langchain.chains.conversation.memory import ConversationBufferMemory
 from langchain.agents import AgentExecutor, create_react_agent
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
-from langchain_core.prompts import (PromptTemplate, MessagesPlaceholder)
-from streamlit_chat import message
-from huggingface_hub.errors import OverloadedError
 import pandas as pd
+from streamlit_extras.grid import grid
 
 # ---------set up page config -------------#
 st.set_page_config(page_title="MIMIC Chatbot",
@@ -18,19 +16,16 @@ st.set_page_config(page_title="MIMIC Chatbot",
                    initial_sidebar_state='expanded',
                    page_icon="🚑")
 
-st.subheader("About Patient's Record")
-st.write("MIMIC-IV-ED is a large, freely available database of emergency department (ED) admissions at the Beth Israel Deaconess Medical Center between 2011 and 2019. The database contains ~425,000 ED stays. Vital signs, triage information, medication reconciliation, medication administration, and discharge diagnoses are available. All data are deidentified to comply with the Health Information Portability and Accountability Act (HIPAA) Safe Harbor provision. MIMIC-IV-ED is intended to support a diverse range of education initiatives and research studies.")
-st.write("https://physionet.org/content/mimic-iv-ed/2.2/")
+# ---------Inject CSS for buttons -------------#
 
-# read original ed data
-df_edstays = pd.read_csv('./med_data/edstays.csv')
-df_diagnosis = pd.read_csv('./med_data/diagnosis.csv')
-df_medrecon = pd.read_csv('./med_data/medrecon.csv')
-df_pyxis = pd.read_csv('./med_data/pyxis.csv')
-df_triage = pd.read_csv('./med_data/triage.csv')
-df_vitalsign = pd.read_csv('./med_data/vitalsign.csv')
+st.markdown(custom_css, unsafe_allow_html=True)
 
-# read original hosp data
+# ---------App Header -------------#
+# Header
+st.subheader("Patients Record AI Assistant")
+st.write(demo_app_text)
+
+# ---------read original hosp data -------------#
 df_procedures_icd = pd.read_csv('./hosp_data/procedures_icd.csv')
 df_d_icd_procedures = pd.read_csv('./hosp_data/d_icd_procedures.csv')
 df_d_icd_procedures_merged = pd.merge(df_d_icd_procedures,
@@ -45,6 +40,7 @@ df_emar = pd.read_csv('./hosp_data/emar.csv')
 # df_emar_merged = pd.merge(df_emar,
 #                          df_emar_detail, on=['subject_id', 'emar_id', 'emar_seq', 'pharmacy_id'], how='inner')
 
+# --------- subject_id for selection -------------#
 # subject_id for selection
 subject_id = df_edstays['subject_id'].unique()
 option = st.selectbox("Choose a medical record", subject_id,
@@ -73,7 +69,8 @@ select_emar = df_emar[
 #    df_emar_merged['subject_id'] == option]
 
 
-# write csv after selected patient
+# --------- write temp file for selected patient -------------#
+
 select_edstays.to_csv('./temp_data/select_edstays.csv')
 select_diagnosis.to_csv('./temp_data/select_diagnosis.csv')
 select_medrecon.to_csv('./temp_data/select_medrecon.csv')
@@ -83,9 +80,8 @@ select_vitalsign.to_csv('./temp_data/select_vitalsign.csv')
 select_d_icd_procedures.to_csv('./temp_data/select_d_icd_procedures.csv')
 select_emar.to_csv('./temp_data/select_emar.csv')
 
-# with st.sidebar:
 
-
+# --------- create tabs for data frames -------------#
 tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["Admission",
                                                           "Diagnosis",
                                                           "Triage",
@@ -103,11 +99,6 @@ with tab1:
                      "hadm_id": st.column_config.NumberColumn(format="%d"),
                      "stay_id": st.column_config.NumberColumn(format="%d"),
                  })
-    # for stay_id in (select_edstays["stay_id"]):
-    # date = st.columns(2)
-
-    # date[0].text(select_edstays["intime"].to_string(index=False))
-    # date[1].text(select_edstays["outtime"].to_string(index=False))
 
 with tab2:
     st.dataframe(select_diagnosis,
@@ -175,10 +166,15 @@ with tab8:
                      "stay_id": st.column_config.NumberColumn(format="%d"),
                  })
 
+# ---------  footers  -------------#
+
+st.write("**About MIMIC-IV-ED**")
+st.write("MIMIC-IV-ED is a large, freely available database of emergency department (ED) admissions at the Beth Israel Deaconess Medical Center between 2011 and 2019. The database contains ~425,000 ED stays. Vital signs, triage information, medication reconciliation, medication administration, and discharge diagnoses are available. All data are deidentified to comply with the Health Information Portability and Accountability Act (HIPAA) Safe Harbor provision. MIMIC-IV-ED is intended to support a diverse range of education initiatives and research studies.")
+st.write("https://physionet.org/content/mimic-iv-ed/2.2/")
 
 # ---- set up creative chat history ----#
 chat_msg = StreamlitChatMessageHistory(key="chat_key")
-chat_history_size = 3
+chat_history_size = 5
 
 # ---------set up LLM  -------------#
 # model = "Qwen/Qwen2.5-72B-Instruct"
@@ -189,7 +185,7 @@ llm_factual = HuggingFaceEndpoint(
     repo_id=model,
     max_new_tokens=2000,
     do_sample=False,
-    temperature=0.1,
+    temperature=0.01,
     repetition_penalty=1.1,
     return_full_text=False,
     top_p=0.2,
@@ -226,16 +222,15 @@ executor = AgentExecutor(
 if 'initial_msg' not in st.session_state:
     st.session_state.initial_msg = 0
 
-
-avatar_style = "shapes"
-seed_user = "luis"
-seed_bot = "kingston"
+# Initialize session state
+if 'langchain_executor' not in st.session_state:
+    st.session_state.langchain_executor = None
 
 # ------ initial welcome message -------#
 if option is not None:
     with st.sidebar:
-        st.subheader("Chatbot")
 
+        st.subheader("Chatbot")
         # ---------set up welcome msg-------------#
         # You have selected patient id: {option}
         welcome_msg = f"Hi there! Choose an option or ask any questions below about patient: {option}."
@@ -253,126 +248,60 @@ if option is not None:
                     st.write(msg.content.replace("<|im_start|>", "").replace(
                         "<|im_end|>", "").replace("<|eot_id|>", "").replace("AI:", "").replace("Human:", ""))
 
-                # message(msg.content.replace("<|im_start|>", "").replace("<|im_end|>", "").replace("<|eot_id|>", "").replace("AI:", "").replace("Human:", ""),
-                #        is_user=False,
-                #        key=f"bot{index}",
-                #        avatar_style=avatar_style,
-                #        seed=seed_bot,
-                #        allow_html=True,
-                #        is_table=True,)
-
             # user's message is in odd position
             else:
                 with st.chat_message("user", avatar=":material/face_6:"):
                     st.write(msg.content.replace(
                         "<|im_start|>", "").replace("<|im_end|>", ""))
 
-                # message(msg.content.replace("<|im_start|>", "").replace("<|im_end|>", ""),
-                #        is_user=True,
-                #        key=f"user{index}",
-                #        avatar_style=avatar_style,
-                #        seed=seed_user)
-
-            # set initial_msg to 0 in first loop
+        # set initial_msg to 0 in first loop
             if index == 0:
                 st.session_state.initial_msg = 1
 
-        # ------ set up magic button -----#
-        example_prompts = [
-            "Admission history",
-            "Diagnosis records",
-            "Triage records",
-            "Vital sign records",
-            "Medicine Reconcilliation records",
-            "Medicine dispensed records",
-            "Inpatient procedures records",
-            "Inpatient medicine records",
-            "A detail summary history",
-            # "I want to input a stay_id"
-        ]
-
-        example_prompts_help = [
-            "help message",
-            "help message",
-            "help message",
-            "help message",
-            "help message",
-            "help message",
-            "help message",
-            "help message",
-            "help message",
-            # "help message",
-        ]
-
-        button_cols = st.columns(3)
-        button_cols_2 = st.columns(3)
-        button_cols_3 = st.columns(3)
-        button_cols_4 = st.columns(3)
+        # use streamlit_extras to create grids
+        btn_grid = grid(2, vertical_align="center")
 
         button_pressed = ""
-        # include help=example_prompts_help[0] in button for pop-up
-        if button_cols[0].button(example_prompts[0]):
+
+        if btn_grid.button(example_prompts[0]):
             button_pressed = example_prompts[0]
-        elif button_cols[1].button(example_prompts[1]):
+        elif btn_grid.button(example_prompts[1]):
             button_pressed = example_prompts[1]
-        elif button_cols[2].button(example_prompts[2]):
+        elif btn_grid.button(example_prompts[2]):
             button_pressed = example_prompts[2]
 
-        elif button_cols_2[0].button(example_prompts[3]):
+        elif btn_grid.button(example_prompts[3]):
             button_pressed = example_prompts[3]
-        elif button_cols_2[1].button(example_prompts[4]):
+        elif btn_grid.button(example_prompts[4]):
             button_pressed = example_prompts[4]
-        elif button_cols_2[2].button(example_prompts[5]):
+        elif btn_grid.button(example_prompts[5]):
             button_pressed = example_prompts[5]
 
-        elif button_cols_3[0].button(example_prompts[6]):
+        elif btn_grid.button(example_prompts[6]):
             button_pressed = example_prompts[6]
-        elif button_cols_3[1].button(example_prompts[7]):
+        elif btn_grid.button(example_prompts[7]):
             button_pressed = example_prompts[7]
-        elif button_cols_3[2].button(example_prompts[8]):
+        elif btn_grid.button(example_prompts[8]):
             button_pressed = example_prompts[8]
-
-        # elif button_cols_4[0].button(example_prompts[9], help=example_prompts_help[9]):
-        #    button_pressed = example_prompts[9]
 
         # ------ set up user input -----#
 
         if prompt := (st.chat_input("Ask me a question...") or button_pressed):
 
-            with st.chat_message("user", avatar=":material/face_6:"):
-                st.write(f'{prompt}')
-
-            # show prompt message
-            # message(f'{prompt}',
-            #        is_user=True,
-            #        key=f"user",
-            #        avatar_style=avatar_style,
-            #        seed=seed_user,)
+            st.chat_message(
+                "user", avatar=":material/face_6:").write(f'{prompt}')
 
             with st.spinner("Retrieving records..."):
+                response = executor.invoke(
+                    {'input': f'<|im_start|>{prompt}<|im_end|>'})
 
-                try:
-                    # use {'input': f'{prompt}<|eot_id|>'})
-                    response = executor.invoke(
-                        {'input': f'<|im_start|>{prompt}<|im_end|>'})
+                with st.chat_message("assistant", avatar=":material/robot_2:"):
+                    st.write(response['output'].replace("<|im_start|>", "").replace(
+                        "<|im_end|>", "").replace("<|eot_id|>", "").replace("<|endoftext|>", ""))
 
-                    with st.chat_message("assistant", avatar=":material/robot_2:"):
-                        st.write(response['output'].replace("<|im_start|>", "").replace(
-                            "<|im_end|>", "").replace("<|eot_id|>", "").replace("<|endoftext|>", ""))
+                # use st.rerun for put buttons at the end of chat
+                st.rerun()
 
-                    # message(response['output'].replace("<|im_start|>", "").replace("<|im_end|>", "").replace("<|eot_id|>", "").replace("<|endoftext|>", ""),
-                    #        is_user=False,
-                    #        key=f"bot_2",
-                    #        avatar_style=avatar_style,
-                    #        seed=seed_bot,
-                    #        allow_html=True,
-                    #        is_table=True,)
-
-                except OverloadedError as error:
-                    st.write(
-                        "HuggingFace🤗 inference engine is overloaded now. Try toggling to the creative mode in the meantime.")
-
-            st.rerun()
 
 if option is None:
     chat_msg.clear()
