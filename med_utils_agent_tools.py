@@ -11,8 +11,8 @@ def edstays(file: str):
 
 edstays_tool = StructuredTool.from_function(
     func=edstays,
-    name='admission at emergency department',
-    description="Use this tool to access emergency department admission records."
+    name='admission records',
+    description="Use this tool to access admission records."
 
 )
 
@@ -25,8 +25,8 @@ def diagnosis(file: str):
 
 diagnosis_tool = StructuredTool.from_function(
     func=diagnosis,
-    name='diagnosis records at emergency department',
-    description="Use this tool to access emergency department diagnosis records"
+    name='diagnosis records',
+    description="Use this tool to access diagnosis records"
 )
 
 
@@ -38,8 +38,8 @@ def triage(file: str):
 
 triage_tool = StructuredTool.from_function(
     func=triage,
-    name='triage records at emergency department',
-    description="Use this tool to access emergency department triage records"
+    name='triage records',
+    description="Use this tool to access triage records"
 )
 
 
@@ -52,7 +52,7 @@ def medrecon(file: str):
 medrecon_tool = StructuredTool.from_function(
     func=medrecon,
     name='medrecon records',
-    description="Use this tool to access emergency department medication reconciliation records"
+    description="Use this tool to access medication reconciliation records"
 )
 
 
@@ -64,8 +64,8 @@ def pyxis(file: str):
 
 pyxis_tool = StructuredTool.from_function(
     func=pyxis,
-    name='pyxis records at emergency department',
-    description="Use this tool to access emergency department medication dispensation records"
+    name='medicine dispensed records',
+    description="Use this tool to access medication dispensed records"
 )
 
 
@@ -77,8 +77,8 @@ def vitalsign(file: str):
 
 vitalsign_tool = StructuredTool.from_function(
     func=vitalsign,
-    name='vitalsign records at emergency department',
-    description="Use this tool to access emergency department vital sign records of patients"
+    name='vital sign records',
+    description="Use this tool to access vital sign records"
 )
 
 
@@ -90,8 +90,8 @@ def med_procedure(file: str):
 
 procedure_tool = StructuredTool.from_function(
     func=med_procedure,
-    name='medical procedures in inpatient care',
-    description="Use this tool to access medical procedures records in inpatient care"
+    name='inpatient procedures records',
+    description="Use this tool to access inpatient procedures records"
 )
 
 
@@ -103,8 +103,8 @@ def emar(file: str):
 
 emar_tool = StructuredTool.from_function(
     func=emar,
-    name='emar records in inpatient care',
-    description="Use this tool to access medicine administered to patients in inpatient care"
+    name='inpatient medicine records',
+    description="Use this tool to access inpatient medicine records"
 )
 
 
